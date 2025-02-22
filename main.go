@@ -7,15 +7,12 @@ import (
 	"net/http"
 )
 
-type requestBody struct {
-	Task string `json:"message"`
-}
-
-var task string
-
 func GetHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		fmt.Fprintln(w, "hello,", task)
+		var tasks []Task
+		DB.Find(&tasks)
+		w.Header().Set("Content-Type", "application/json") // Установка формата
+		json.NewEncoder(w).Encode(tasks) // Декодирование 
 	} else {
 		fmt.Fprintln(w, "Only GET")
 	}
@@ -23,17 +20,22 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 
 func PostHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
-		var rB requestBody
-		json.NewDecoder(r.Body).Decode(&rB)
-		task = rB.Task
+		var task Task
+		json.NewDecoder(r.Body).Decode(&task)
+		DB.Create(&task)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(task)
 	} else {
 		fmt.Fprintln(w, "Only POST")
 	}
 }
 
 func main() {
+	InitDB()
+	DB.AutoMigrate(&Task{})
+
 	router := mux.NewRouter()
-	router.HandleFunc("/get", GetHandler)
-	router.HandleFunc("/post", PostHandler)
+	router.HandleFunc("/get", GetHandler).Methods("GET")
+	router.HandleFunc("/post", PostHandler).Methods("POST")
 	http.ListenAndServe(":8080", router)
 }
