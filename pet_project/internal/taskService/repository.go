@@ -43,7 +43,12 @@ func (r *taskRepository) UpdateTaskByID(id uint, task Task) (Task, error) {
 	if result.Error != nil {
 		return Task{}, result.Error
 	}
-	return task, nil
+	var updatedTask Task
+	result = r.db.First(&updatedTask, id)
+	if result.Error != nil {
+		return Task{}, result.Error
+	}
+	return updatedTask, nil
 }
 
 func (r *taskRepository) DeleteTaskByID(id uint) error {
