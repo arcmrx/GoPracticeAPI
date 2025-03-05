@@ -65,10 +65,9 @@ func (h *Handler) PostTasks(_ context.Context, request tasks.PostTasksRequestObj
 	return response, nil
 }
 
-// PatchTasks implements tasks.StrictServerInterface.
-func (h *Handler) PatchTasks(ctx context.Context, request tasks.PatchTasksRequestObject) (tasks.PatchTasksResponseObject, error) {
+func (h *Handler) PatchTasksId(ctx context.Context, request tasks.PatchTasksIdRequestObject) (tasks.PatchTasksIdResponseObject, error) {
 	taskRequest := request.Body
-	taskID := request.Body.Id
+	taskID := request.Id
 
 	taskToPatch := tasksService.Task{
 		Text:   *taskRequest.Task,
@@ -81,7 +80,7 @@ func (h *Handler) PatchTasks(ctx context.Context, request tasks.PatchTasksReques
 		return nil, err
 	}
 
-	response := tasks.PatchTasks200JSONResponse{
+	response := tasks.PatchTasksId200JSONResponse{
 		Id:     &patchedTask.ID,
 		Task:   &patchedTask.Text,
 		IsDone: &patchedTask.IsDone,
@@ -90,15 +89,13 @@ func (h *Handler) PatchTasks(ctx context.Context, request tasks.PatchTasksReques
 	return response, nil
 }
 
-// DeleteTasks implements tasks.StrictServerInterface.
-func (h *Handler) DeleteTasks(ctx context.Context, request tasks.DeleteTasksRequestObject) (tasks.DeleteTasksResponseObject, error) {
-	taskID := request.Body.Id
+func (h *Handler) DeleteTasksId(ctx context.Context, request tasks.DeleteTasksIdRequestObject) (tasks.DeleteTasksIdResponseObject, error) {
+	taskID := request.Id
 	err := h.Service.DeleteTaskByID(taskID)
 	if err != nil {
 		return nil, err
 	}
 
-	response := tasks.DeleteTasks204Response{}
+	response := tasks.DeleteTasksId204Response{}
 	return response, nil
-
 }

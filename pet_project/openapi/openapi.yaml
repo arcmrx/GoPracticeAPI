@@ -35,10 +35,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Task'
+  /tasks/{id}:
     patch:
       summary: Update a task
       tags:
         - tasks
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: uint
       requestBody:
         description: The task to update
         required: true
@@ -69,6 +77,13 @@ paths:
       summary: Delete a task
       tags:
         - tasks
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: uint
       requestBody:
         description: The task to delete
         required: true
