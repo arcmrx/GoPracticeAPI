@@ -69,13 +69,15 @@ func (h *Handler) PatchTasksId(ctx context.Context, request tasks.PatchTasksIdRe
 	taskRequest := request.Body
 	taskID := request.Id
 
-	taskToPatch := tasksService.Task{
-		Text:   *taskRequest.Task,
-		IsDone: *taskRequest.IsDone,
+	taskToPatch := tasksService.Task{}
+	if taskRequest.Task != nil {
+		taskToPatch.Text = *taskRequest.Task
+	}
+	if taskRequest.IsDone != nil {
+		taskToPatch.IsDone = *taskRequest.IsDone
 	}
 
 	patchedTask, err := h.Service.UpdateTaskByID(taskID, taskToPatch)
-
 	if err != nil {
 		return nil, err
 	}
