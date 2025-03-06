@@ -7,27 +7,31 @@ import (
 	"golang/pet_project/internal/database"
 	"golang/pet_project/internal/handlers"
 	"golang/pet_project/internal/tasksService"
+	"golang/pet_project/internal/userService"
 	"golang/pet_project/internal/web/tasks"
+	"golang/pet_project/internal/web/users"
 )
 
 func main() {
 	database.InitDB()
 
-	repo := tasksService.NewTaskRepository(database.DB)
-	service := tasksService.NewService(repo)
+	tasksRepo := tasksService.NewTaskRepository(database.DB)
+	taskService := tasksService.NewTaskService(tasksRepo)
+	taskHandler := handlers.NewTaskHandler(taskService)
 
-	handler := handlers.NewHandler(service)
+	usersRepo := userservice.NewUserRepository(database.DB)
+	userService := userservice.NewUserService(usersRepo)
+	userHandler := handlers.NewUserHandler(userService)
 	
-	// Инициализируем echo
 	e := echo.New()
-	
-	// используем Logger и Recover
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	// Прикол для работы в echo. Передаем и регистрируем хендлер в echo
-	strictHandler := tasks.NewStrictHandler(handler, nil)
-	tasks.RegisterHandlers(e, strictHandler)
+	strictTaskHandler := tasks.NewStrictHandler(taskHandler, nil)
+	tasks.RegisterHandlers(e, strictTaskHandler)
+
+	strictUserHandler := users.NewStrictHandler(userHandler, nil)
+	users.RegisterHandlers(e, strictUserHandler)
 
 	if err := e.Start(":8080"); err != nil {
 		log.Fatalf("failed to start with err: %v", err)
