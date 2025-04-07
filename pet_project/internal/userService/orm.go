@@ -1,9 +1,14 @@
 package userservice
 
-import "gorm.io/gorm"
+import (
+	"golang/pet_project/internal/tasksService"
+	"gorm.io/gorm"
+)
 
 type User struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
 	gorm.Model
+	ID       uint                `json:"user_id"`
+	Email    string              `json:"email"`
+	Password string              `json:"password"`
+	Tasks    []tasksService.Task `json:"tasks"`
 }

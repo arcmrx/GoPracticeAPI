@@ -1,7 +1,12 @@
 package userservice
 
+import (
+	"golang/pet_project/internal/tasksService"
+)
+
 type UserService struct {
-	repo UserRepository
+	repo        UserRepository
+	TaskService tasksService.TaskService
 }
 
 func NewUserService(repo UserRepository) *UserService {
@@ -22,4 +27,8 @@ func (s *UserService) PatchUserByID(id uint, user User) (User, error) {
 
 func (s *UserService) DeleteUserByID(id uint) error {
 	return s.repo.DeleteUserByID(id)
+}
+
+func (s *UserService) GetTaskByUserId(id uint) ([]tasksService.Task, error) {
+	return s.TaskService.GetTaskByUserId(id)
 }

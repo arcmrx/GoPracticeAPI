@@ -23,3 +23,7 @@ func (s *TaskService) UpdateTaskByID(id uint, task Task) (Task, error) {
 func (s *TaskService) DeleteTaskByID(id uint) error {
 	return s.repo.DeleteTaskByID(id)
 }
+
+func (s *TaskService) GetTaskByUserId(id uint) ([]Task, error) {
+	return s.repo.GetTaskByUserId(id)
+}

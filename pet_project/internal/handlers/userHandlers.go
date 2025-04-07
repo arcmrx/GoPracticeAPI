@@ -39,7 +39,7 @@ func (h *UserHandler) PatchUsersId(ctx context.Context, request users.PatchUsers
 	}
 
 	response := users.PatchUsersId200JSONResponse{
-		Id:       &patchedUser.ID,
+		ID:       &patchedUser.ID,
 		Email:    &patchedUser.Email,
 		Password: &patchedUser.Password,
 	}
@@ -50,8 +50,8 @@ func (h *UserHandler) PatchUsersId(ctx context.Context, request users.PatchUsers
 func (h *UserHandler) PostUsers(ctx context.Context, request users.PostUsersRequestObject) (users.PostUsersResponseObject, error) {
 	userRequest := request.Body
 	userToCreate := userservice.User{
-		Email:    *userRequest.Email,
-		Password: *userRequest.Password,
+		Email:    userRequest.Email,
+		Password: userRequest.Password,
 	}
 
 	createdUser, err := h.Service.PostUser(userToCreate)
@@ -60,7 +60,7 @@ func (h *UserHandler) PostUsers(ctx context.Context, request users.PostUsersRequ
 	}
 
 	response := users.PostUsers201JSONResponse{
-		Id:       &createdUser.ID,
+		ID:       &createdUser.ID,
 		Email:    &createdUser.Email,
 		Password: &createdUser.Password,
 	}
@@ -83,7 +83,7 @@ func (h *UserHandler) GetUsers(_ context.Context, _ users.GetUsersRequestObject)
 
 	for _, usr := range allUsers {
 		user := users.User{
-			Id:       &usr.ID,
+			ID:       &usr.ID,
 			Email:    &usr.Email,
 			Password: &usr.Password,
 		}
@@ -92,5 +92,3 @@ func (h *UserHandler) GetUsers(_ context.Context, _ users.GetUsersRequestObject)
 
 	return response, nil
 }
-
-

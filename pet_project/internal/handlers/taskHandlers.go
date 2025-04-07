@@ -2,12 +2,33 @@ package handlers
 
 import (
 	"context"
-	"golang/pet_project/internal/tasksService" // Импортируем наш сервис
+	"golang/pet_project/internal/tasksService"
 	"golang/pet_project/internal/web/tasks"
+	"net/http"
+
+	"github.com/labstack/echo/v4"
 )
 
 type TaskHandler struct {
 	Service *tasksService.TaskService
+}
+
+func (h *TaskHandler) GetUsersIdTasks(ctx context.Context, request tasks.GetUsersIdTasksRequestObject) (tasks.GetUsersIdTasksResponseObject, error) {
+	tasksUser, err := h.Service.GetTaskByUserId(request.Id)
+	if err != nil {
+		return nil, err
+	}
+	response := tasks.GetUsersIdTasks202JSONResponse{}
+
+	for _, tsk := range tasksUser {
+		task := tasks.Task{
+			Id:     &tsk.ID,
+			Task:   &tsk.Task,
+			IsDone: &tsk.IsDone,
+		}
+		response = append(response, task)
+	}
+	return response, nil
 }
 
 // Нужна для создания структуры TaskHandler на этапе инициализации приложения
@@ -32,8 +53,9 @@ func (h *TaskHandler) GetTasks(_ context.Context, _ tasks.GetTasksRequestObject)
 	for _, tsk := range allTasks {
 		task := tasks.Task{
 			Id:     &tsk.ID,
-			Task:   &tsk.Text,
+			Task:   &tsk.Task,
 			IsDone: &tsk.IsDone,
+			UserId: &tsk.UserID,
 		}
 		response = append(response, task)
 	}
@@ -45,21 +67,35 @@ func (h *TaskHandler) GetTasks(_ context.Context, _ tasks.GetTasksRequestObject)
 func (h *TaskHandler) PostTasks(_ context.Context, request tasks.PostTasksRequestObject) (tasks.PostTasksResponseObject, error) {
 	// Распаковываем тело запроса напрямую, без декодера!
 	taskRequest := request.Body
+
+	// Проверяем, что все обязательные поля присутствуют
+	if taskRequest.Task == nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, "Поле 'Task' отсутствует")
+	}
+	if taskRequest.IsDone == nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, "Поле 'IsDone' отсутствует")
+	}
+	if taskRequest.UserId == nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, "Поле 'UserId' отсутствует")
+	}
+
 	// Обращаемся к сервису и создаем задачу
 	taskToCreate := tasksService.Task{
-		Text:   *taskRequest.Task,
+		Task:   *taskRequest.Task,
 		IsDone: *taskRequest.IsDone,
+		UserID: *taskRequest.UserId,
 	}
 	createdTask, err := h.Service.CreateTask(taskToCreate)
-
 	if err != nil {
 		return nil, err
 	}
+
 	// создаем структуру респонс
 	response := tasks.PostTasks201JSONResponse{
 		Id:     &createdTask.ID,
-		Task:   &createdTask.Text,
+		Task:   &createdTask.Task,
 		IsDone: &createdTask.IsDone,
+		UserId: &createdTask.UserID,
 	}
 	// Просто возвращаем респонс!
 	return response, nil
@@ -71,10 +107,13 @@ func (h *TaskHandler) PatchTasksId(ctx context.Context, request tasks.PatchTasks
 
 	taskToPatch := tasksService.Task{}
 	if taskRequest.Task != nil {
-		taskToPatch.Text = *taskRequest.Task
+		taskToPatch.Task = *taskRequest.Task
 	}
 	if taskRequest.IsDone != nil {
 		taskToPatch.IsDone = *taskRequest.IsDone
+	}
+	if taskRequest.UserId != nil {
+		taskToPatch.UserID = *taskRequest.UserId
 	}
 
 	patchedTask, err := h.Service.UpdateTaskByID(taskID, taskToPatch)
@@ -84,8 +123,9 @@ func (h *TaskHandler) PatchTasksId(ctx context.Context, request tasks.PatchTasks
 
 	response := tasks.PatchTasksId200JSONResponse{
 		Id:     &patchedTask.ID,
-		Task:   &patchedTask.Text,
+		Task:   &patchedTask.Task,
 		IsDone: &patchedTask.IsDone,
+		UserId: &patchedTask.UserID,
 	}
 
 	return response, nil

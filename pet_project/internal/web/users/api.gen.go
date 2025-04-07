@@ -8,39 +8,54 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
 	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
 )
 
+// NewUser defines model for NewUser.
+type NewUser struct {
+	// Email User email
+	Email string `json:"Email"`
+
+	// Password User password
+	Password string `json:"Password"`
+}
+
+// UpdateUser defines model for UpdateUser.
+type UpdateUser struct {
+	// Email User email
+	Email *string `json:"Email,omitempty"`
+
+	// Password User password
+	Password *string `json:"Password,omitempty"`
+}
+
 // User defines model for User.
 type User struct {
-	Email    *string `json:"email,omitempty"`
-	Id       *uint   `json:"id,omitempty"`
-	Password *string `json:"password,omitempty"`
-}
+	// CreatedAt Creation timestamp
+	CreatedAt *time.Time `json:"CreatedAt,omitempty"`
 
-// DeleteUsersIdJSONBody defines parameters for DeleteUsersId.
-type DeleteUsersIdJSONBody struct {
-	Id uint `json:"id"`
-}
+	// Email User email
+	Email *string `json:"Email,omitempty"`
 
-// PatchUsersIdJSONBody defines parameters for PatchUsersId.
-type PatchUsersIdJSONBody struct {
-	Email    *string `json:"email"`
-	Id       uint    `json:"id"`
-	Password *string `json:"password"`
+	// ID User ID
+	ID *uint `json:"ID,omitempty"`
+
+	// Password User password
+	Password *string `json:"Password,omitempty"`
+
+	// UpdatedAt Last update timestamp
+	UpdatedAt *time.Time `json:"UpdatedAt,omitempty"`
 }
 
 // PostUsersJSONRequestBody defines body for PostUsers for application/json ContentType.
-type PostUsersJSONRequestBody = User
-
-// DeleteUsersIdJSONRequestBody defines body for DeleteUsersId for application/json ContentType.
-type DeleteUsersIdJSONRequestBody DeleteUsersIdJSONBody
+type PostUsersJSONRequestBody = NewUser
 
 // PatchUsersIdJSONRequestBody defines body for PatchUsersId for application/json ContentType.
-type PatchUsersIdJSONRequestBody PatchUsersIdJSONBody
+type PatchUsersIdJSONRequestBody = UpdateUser
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -181,9 +196,16 @@ func (response PostUsers201JSONResponse) VisitPostUsersResponse(w http.ResponseW
 	return json.NewEncoder(w).Encode(response)
 }
 
+type PostUsers400Response struct {
+}
+
+func (response PostUsers400Response) VisitPostUsersResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
 type DeleteUsersIdRequestObject struct {
-	Id   uint `json:"id"`
-	Body *DeleteUsersIdJSONRequestBody
+	Id uint `json:"id"`
 }
 
 type DeleteUsersIdResponseObject interface {
@@ -195,6 +217,14 @@ type DeleteUsersId204Response struct {
 
 func (response DeleteUsersId204Response) VisitDeleteUsersIdResponse(w http.ResponseWriter) error {
 	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteUsersId404Response struct {
+}
+
+func (response DeleteUsersId404Response) VisitDeleteUsersIdResponse(w http.ResponseWriter) error {
+	w.WriteHeader(404)
 	return nil
 }
 
@@ -214,6 +244,22 @@ func (response PatchUsersId200JSONResponse) VisitPatchUsersIdResponse(w http.Res
 	w.WriteHeader(200)
 
 	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchUsersId400Response struct {
+}
+
+func (response PatchUsersId400Response) VisitPatchUsersIdResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
+type PatchUsersId404Response struct {
+}
+
+func (response PatchUsersId404Response) VisitPatchUsersIdResponse(w http.ResponseWriter) error {
+	w.WriteHeader(404)
+	return nil
 }
 
 // StrictServerInterface represents all server handlers.
@@ -301,12 +347,6 @@ func (sh *strictHandler) DeleteUsersId(ctx echo.Context, id uint) error {
 	var request DeleteUsersIdRequestObject
 
 	request.Id = id
-
-	var body DeleteUsersIdJSONRequestBody
-	if err := ctx.Bind(&body); err != nil {
-		return err
-	}
-	request.Body = &body
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.DeleteUsersId(ctx.Request().Context(), request.(DeleteUsersIdRequestObject))
